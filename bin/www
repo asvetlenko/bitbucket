@@ -1,5 +1,15 @@
 #!/usr/bin/env node
 
+/*
+ NODE_ENV=development;
+ DEBUG=blog:*;
+ NODE_PATH=.
+ -----------------
+ //D:/MongoDB/Server/3.2/bin/mongod.exe --dbpath "D:/MongoDB/db" -v
+ -----------------
+
+ */
+
 /**
  * Module dependencies.
  */

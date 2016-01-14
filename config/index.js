@@ -1,8 +1,8 @@
 /**
  * Created by we on 27-Dec-15.
  */
-var nconf = require('nconf'),
-    path = require('path');
+var nconf = require('nconf');
+var path = require('path');
 
 nconf.argv()
     .env()

@@ -2,18 +2,19 @@
  * Created by we on 27-Dec-15.
  */
 
-var winston = require('winston'),
-    path = require('path'),
-    ENV = process.env.NODE_ENV;
+var winston = require('winston');
+var path = require('path');
+var config = require('./../config');
+var ENV = process.env.NODE_ENV;
 
 function getLogger(module) {
-    var path = module.filename.split('/').slice(-2).join('/');
+    var modulePath = module.filename.split(path.sep).slice(-2).join('/');
     return new winston.Logger({
         transports: [
             new winston.transports.Console({
                 colorize: true,
                 level: ENV === 'development' ? 'debug' : 'error',
-                label: path
+                label: modulePath
             })
         ]
     });
