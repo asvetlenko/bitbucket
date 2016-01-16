@@ -2,8 +2,7 @@
  * Created by we on 30-Dec-15.
  */
 
-//cd D:\alexey\MongoDB\Server\3.2\bin\
-//mongod.exe --dbpath "D:\alexey\MongoDB\db" -v
+//D:\alexey\MongoDB\Server\3.2\bin\mongod.exe --dbpath "D:\alexey\MongoDB\db" -v
 
 var mongooose = require('./common/mongoose'),
     async = require('async');
