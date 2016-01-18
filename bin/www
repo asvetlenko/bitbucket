@@ -5,13 +5,9 @@
  DEBUG=blog:*;
  NODE_PATH=.
  -----------------
- //D:/MongoDB/Server/3.2/bin/mongod.exe --dbpath "D:/MongoDB/db" -v
+ D:/MongoDB/Server/3.2/bin/mongod.exe --dbpath "D:/MongoDB/db" -v
+ D:/alexey/MongoDB/Server/3.2/bin/mongod.exe --dbpath "D:/alexey/MongoDB/db" -v
  -----------------
-
- */
-
-/**
- * Module dependencies.
  */
 
 var app = require('../app');
