@@ -4,7 +4,7 @@
 
 var router = require('express').Router();
 
-router.post('/', function (req, res, next) {
+router.get('/', function (req, res, next) {
     var sid = req.session.id;
     var io = req.app.get('io');
 

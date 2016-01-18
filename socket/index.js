@@ -3,12 +3,12 @@
  */
 
 var express = require('express');
-var log = require('./../common/log')(module);
-var config = require('./../config');
+var log = require('common/log')(module);
+var config = require('config');
 var async = require('async');
-var sessionStore = require('./../common/sessionStore.js');
-var User = require('./../models/user').User;
-var HttpError = require('./../error').HttpError;
+var sessionStore = require('common/sessionStore.js');
+var User = require('models/user').User;
+var HttpError = require('common/error').HttpError;
 var ObjectID = require('mongodb').ObjectID;
 var cookie = require('cookie');
 var cookieParser = require('cookie-parser');
@@ -45,9 +45,53 @@ function loadUser(session, callback) {
     });
 }
 
+function initSocketCallback(io) {
+    io.sockets.on('session:reload', function (sid) {
+        var username = socket.request.user.get('username');
+
+        clients.forEach(function (client) {
+            if (client.request.session.id !== sid) {
+                return;
+            }
+
+            loadSession(sid, function (err, session) {
+                if (err) {
+                    client.emit('error', 'server error');
+                    client.disconnect();
+                    return;
+                }
+
+                if (!session) {
+                    client.emit('logout');
+                    client.disconnect();
+                    return;
+                }
+
+                client.request.session = session;
+            });
+        });
+    });
+
+    io.sockets.on('connection', function (socket) {
+        var username = socket.request.user.get('username');
+        socket.broadcast.emit('join', username);
+
+
+        socket.on('message', function (text, cb) {
+            socket.broadcast.emit('message', username, text);
+            cb && cb({my: 123});
+        });
+
+        socket.on('disconnect', function () {
+            socket.broadcast.emit('leave', username);
+        });
+    });
+}
+
 module.exports = function (server) {
     var io = require('socket.io')(server);
     io.set('origins', 'localhost:*');
+    io.set('logger', log);
 
     io.set('authorization', function (handshakeData, callback) {
         async.waterfall([
@@ -77,6 +121,7 @@ module.exports = function (server) {
             ],
             function (err) {
                 if (!err) {
+                    initSocketCallback(io);
                     return callback(null, true);
                 }
 
@@ -87,47 +132,5 @@ module.exports = function (server) {
                 callback(err);
             });
     });
-
-    io.sockets.on('session:reload', function (sid) {
-        var clients = io.sockets.clients();
-
-        clients.forEach(function (client) {
-            if (client.handshake.session.id !== sid) {
-                return;
-            }
-
-            loadSession(sid, function (err, session) {
-                if (err) {
-                    client.emit('error', 'server error');
-                    client.disconnect();
-                    return;
-                }
-
-                if (!session) {
-                    client.emit('logout');
-                    client.disconnect();
-                    return;
-                }
-
-                client.handshake.session = session;
-            });
-        });
-    });
-
-    io.sockets.on('connection', function (socket) {
-        var username = socket.handshake.user.get('username');
-        socket.broadcast.emit('join', username);
-
-
-        socket.on('message', function (text, cb) {
-            socket.broadcast.emit('message', username, text);
-            cb && cb({my: 123});
-        });
-
-        socket.on('disconnect', function () {
-            socket.broadcast.emit('leave', username);
-        });
-    });
-
     return io;
 };

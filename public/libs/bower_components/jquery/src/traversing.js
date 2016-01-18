@@ -1,13 +1,16 @@
 define([
     "./core",
     "./var/indexOf",
+    "./traversing/var/dir",
+    "./traversing/var/siblings",
     "./traversing/var/rneedsContext",
     "./core/init",
     "./traversing/findFilter",
     "./selector"
-], function (jQuery, indexOf, rneedsContext) {
+], function (jQuery, indexOf, dir, siblings, rneedsContext) {
 
     var rparentsprev = /^(?:parents|prev(?:Until|All))/,
+
     // Methods guaranteed to produce a unique set when starting from a unique set
         guaranteedUnique = {
             children: true,
@@ -15,35 +18,6 @@ define([
             next: true,
             prev: true
         };
-
-    jQuery.extend({
-        dir: function (elem, dir, until) {
-            var matched = [],
-                truncate = until !== undefined;
-
-            while ((elem = elem[dir]) && elem.nodeType !== 9) {
-                if (elem.nodeType === 1) {
-                    if (truncate && jQuery(elem).is(until)) {
-                        break;
-                    }
-                    matched.push(elem);
-                }
-            }
-            return matched;
-        },
-
-        sibling: function (n, elem) {
-            var matched = [];
-
-            for (; n; n = n.nextSibling) {
-                if (n.nodeType === 1 && n !== elem) {
-                    matched.push(n);
-                }
-            }
-
-            return matched;
-        }
-    });
 
     jQuery.fn.extend({
         has: function (target) {
@@ -71,13 +45,14 @@ define([
 
             for (; i < l; i++) {
                 for (cur = this[i]; cur && cur !== context; cur = cur.parentNode) {
+
                     // Always skip document fragments
-                    if (cur.nodeType < 11 && (pos ?
+                    if (cur.nodeType < 11 && ( pos ?
                         pos.index(cur) > -1 :
 
                             // Don't pass non-elements to Sizzle
                         cur.nodeType === 1 &&
-                        jQuery.find.matchesSelector(cur, selectors))) {
+                        jQuery.find.matchesSelector(cur, selectors) )) {
 
                         matched.push(cur);
                         break;
@@ -85,7 +60,7 @@ define([
                 }
             }
 
-            return this.pushStack(matched.length > 1 ? jQuery.unique(matched) : matched);
+            return this.pushStack(matched.length > 1 ? jQuery.uniqueSort(matched) : matched);
         },
 
         // Determine the position of an element within the set
@@ -111,7 +86,7 @@ define([
 
         add: function (selector, context) {
             return this.pushStack(
-                jQuery.unique(
+                jQuery.uniqueSort(
                     jQuery.merge(this.get(), jQuery(selector, context))
                 )
             );
@@ -125,7 +100,7 @@ define([
     });
 
     function sibling(cur, dir) {
-        while ((cur = cur[dir]) && cur.nodeType !== 1) {
+        while (( cur = cur[dir] ) && cur.nodeType !== 1) {
         }
         return cur;
     }
@@ -136,10 +111,10 @@ define([
             return parent && parent.nodeType !== 11 ? parent : null;
         },
         parents: function (elem) {
-            return jQuery.dir(elem, "parentNode");
+            return dir(elem, "parentNode");
         },
         parentsUntil: function (elem, i, until) {
-            return jQuery.dir(elem, "parentNode", until);
+            return dir(elem, "parentNode", until);
         },
         next: function (elem) {
             return sibling(elem, "nextSibling");
@@ -148,22 +123,22 @@ define([
             return sibling(elem, "previousSibling");
         },
         nextAll: function (elem) {
-            return jQuery.dir(elem, "nextSibling");
+            return dir(elem, "nextSibling");
         },
         prevAll: function (elem) {
-            return jQuery.dir(elem, "previousSibling");
+            return dir(elem, "previousSibling");
         },
         nextUntil: function (elem, i, until) {
-            return jQuery.dir(elem, "nextSibling", until);
+            return dir(elem, "nextSibling", until);
         },
         prevUntil: function (elem, i, until) {
-            return jQuery.dir(elem, "previousSibling", until);
+            return dir(elem, "previousSibling", until);
         },
         siblings: function (elem) {
-            return jQuery.sibling(( elem.parentNode || {} ).firstChild, elem);
+            return siblings(( elem.parentNode || {} ).firstChild, elem);
         },
         children: function (elem) {
-            return jQuery.sibling(elem.firstChild);
+            return siblings(elem.firstChild);
         },
         contents: function (elem) {
             return elem.contentDocument || jQuery.merge([], elem.childNodes);
@@ -181,9 +156,10 @@ define([
             }
 
             if (this.length > 1) {
+
                 // Remove duplicates
                 if (!guaranteedUnique[name]) {
-                    jQuery.unique(matched);
+                    jQuery.uniqueSort(matched);
                 }
 
                 // Reverse order for parents* and prev-derivatives

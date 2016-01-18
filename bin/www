@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 /*
- NODE_ENV=development;
- DEBUG=blog:*;
+ NODE_ENV=development
+ DEBUG=blog:*
  NODE_PATH=.
  -----------------
  D:/MongoDB/Server/3.2/bin/mongod.exe --dbpath "D:/MongoDB/db" -v
@@ -10,11 +10,15 @@
  -----------------
  */
 
-var app = require('../app');
-var debug = require('debug')('bitbucket:server');
+/**
+ * Module dependencies.
+ */
+
+var app = require('app');
+var debug = require('debug')('blog:server');
 var http = require('http');
-var config = require('../config');
-var log = require('../common/log')(module);
+var config = require('config');
+var log = require('common/log')(module);
 
 /**
  * Get port from environment and store in Express.
@@ -99,6 +103,5 @@ function onListening() {
     log.info('Listening on ' + bind);
 }
 
-var io = require('./../socket')(server);
-
+var io = require('socket')(server);
 app.set('io', io);

@@ -1,6 +1,7 @@
 /**
- * Created by we on 27-Dec-15.
+ * Created by alexey.svetlenko on 13.01.2016.
  */
+
 var nconf = require('nconf');
 var path = require('path');
 

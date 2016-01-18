@@ -2,7 +2,7 @@
  * Created by we on 02-Jan-16.
  */
 
-User = require('./../models/user').User;
+User = require('models/user').User;
 
 module.exports = function (req, res, next) {
     req.user = res.locals.user = null;

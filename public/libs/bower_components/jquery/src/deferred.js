@@ -8,6 +8,7 @@ define([
 
         Deferred: function (func) {
             var tuples = [
+
                     // action, add listener, listener list, final state
                     ["resolve", "done", jQuery.Callbacks("once memory"), "resolved"],
                     ["reject", "fail", jQuery.Callbacks("once memory"), "rejected"],
@@ -27,22 +28,27 @@ define([
                         return jQuery.Deferred(function (newDefer) {
                             jQuery.each(tuples, function (i, tuple) {
                                 var fn = jQuery.isFunction(fns[i]) && fns[i];
+
                                 // deferred[ done | fail | progress ] for forwarding actions to newDefer
                                 deferred[tuple[1]](function () {
                                     var returned = fn && fn.apply(this, arguments);
                                     if (returned && jQuery.isFunction(returned.promise)) {
                                         returned.promise()
+                                            .progress(newDefer.notify)
                                             .done(newDefer.resolve)
-                                            .fail(newDefer.reject)
-                                            .progress(newDefer.notify);
+                                            .fail(newDefer.reject);
                                     } else {
-                                        newDefer[tuple[0] + "With"](this === promise ? newDefer.promise() : this, fn ? [returned] : arguments);
+                                        newDefer[tuple[0] + "With"](
+                                            this === promise ? newDefer.promise() : this,
+                                            fn ? [returned] : arguments
+                                        );
                                     }
                                 });
                             });
                             fns = null;
                         }).promise();
                     },
+
                     // Get a promise for this deferred
                     // If obj is provided, the promise aspect is added to the object
                     promise: function (obj) {
@@ -65,6 +71,7 @@ define([
                 // Handle state
                 if (stateString) {
                     list.add(function () {
+
                         // state = [ resolved | rejected ]
                         state = stateString;
 
@@ -99,9 +106,11 @@ define([
                 length = resolveValues.length,
 
             // the count of uncompleted subordinates
-                remaining = length !== 1 || ( subordinate && jQuery.isFunction(subordinate.promise) ) ? length : 0,
+                remaining = length !== 1 ||
+                ( subordinate && jQuery.isFunction(subordinate.promise) ) ? length : 0,
 
-            // the master Deferred. If resolveValues consist of only a single Deferred, just use that.
+            // the master Deferred.
+            // If resolveValues consist of only a single Deferred, just use that.
                 deferred = remaining === 1 ? subordinate : jQuery.Deferred(),
 
             // Update function for both resolve and progress values
@@ -127,9 +136,9 @@ define([
                 for (; i < length; i++) {
                     if (resolveValues[i] && jQuery.isFunction(resolveValues[i].promise)) {
                         resolveValues[i].promise()
+                            .progress(updateFunc(i, progressContexts, progressValues))
                             .done(updateFunc(i, resolveContexts, resolveValues))
-                            .fail(deferred.reject)
-                            .progress(updateFunc(i, progressContexts, progressValues));
+                            .fail(deferred.reject);
                     } else {
                         --remaining;
                     }

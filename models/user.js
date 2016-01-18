@@ -1,12 +1,8 @@
-/**
- * Created by we on 30-Dec-15.
- */
-
-var crypto = require('crypto'),
-    mongooose = require('./../common/mongoose'),
-    Schema = mongooose.Schema,
-    async = require('async'),
-    AuthError = require('./../error').AuthError;
+var crypto = require('crypto');
+var mongooose = require('common/mongoose');
+var Schema = mongooose.Schema;
+var async = require('async');
+var AuthError = require('common/error').AuthError;
 
 var schema = new Schema({
     username: {
@@ -30,18 +26,7 @@ var schema = new Schema({
 
 schema.methods.encryptPassword = function (password) {
     return crypto.createHmac('sha1', this.salt).update(password).digest('hex');
-
 };
-//
-//schema.methods.getById = function (id, callback) {
-//    try {
-//        var id = new ObjectID(id);
-//    } catch (ex) {
-//        return next(404);
-//    }
-//
-//    User.findById(id, callback);
-//};
 
 schema.virtual('password')
     .set(function (password) {
@@ -85,5 +70,3 @@ schema.statics.authorize = function (username, password, callback) {
 };
 
 module.exports.User = mongooose.model('User', schema);
-
-

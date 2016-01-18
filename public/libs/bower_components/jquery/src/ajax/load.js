@@ -5,6 +5,7 @@ define([
     "../traversing",
     "../manipulation",
     "../selector",
+
     // Optional event/alias dependency
     "../event/alias"
 ], function (jQuery) {
@@ -24,7 +25,7 @@ define([
             self = this,
             off = url.indexOf(" ");
 
-        if (off >= 0) {
+        if (off > -1) {
             selector = jQuery.trim(url.slice(off));
             url = url.slice(0, off);
         }
@@ -46,8 +47,10 @@ define([
             jQuery.ajax({
                 url: url,
 
-                // if "type" variable is undefined, then "GET" method will be used
-                type: type,
+                // If "type" variable is undefined, then "GET" method will be used.
+                // Make value of this field explicit since
+                // user can override it through ajaxSetup method
+                type: type || "GET",
                 dataType: "html",
                 data: params
             }).done(function (responseText) {
@@ -64,8 +67,13 @@ define([
                     // Otherwise use the full result
                     responseText);
 
-            }).complete(callback && function (jqXHR, status) {
-                    self.each(callback, response || [jqXHR.responseText, status, jqXHR]);
+                // If the request succeeds, this function gets "data", "status", "jqXHR"
+                // but they are ignored because response was set above.
+                // If it fails, this function gets "jqXHR", "status", "error"
+            }).always(callback && function (jqXHR, status) {
+                    self.each(function () {
+                        callback.apply(self, response || [jqXHR.responseText, status, jqXHR]);
+                    });
                 });
         }
 

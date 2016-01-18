@@ -33,7 +33,7 @@ define([
         }
 
         return jQuery.grep(elements, function (elem) {
-            return ( indexOf.call(qualifier, elem) >= 0 ) !== not;
+            return ( indexOf.call(qualifier, elem) > -1 ) !== not;
         });
     }
 

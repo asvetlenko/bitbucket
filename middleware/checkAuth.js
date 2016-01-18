@@ -2,7 +2,7 @@
  * Created by we on 02-Jan-16.
  */
 
-var HttpError = require('./../error').HttpError;
+var HttpError = require('common/error').HttpError;
 
 module.exports = function (req, res, next) {
     if (!req.session.user) {

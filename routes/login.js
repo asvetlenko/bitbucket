@@ -3,15 +3,16 @@
  */
 
 var router = require('express').Router(),
-    User = require('./../models/user').User,
-    HttpError = require('./../error').HttpError,
-    AuthError = require('./../error').AuthError,
+    User = require('models/user').User,
+    error = require('common/error'),
+    HttpError = error.HttpError,
+    AuthError = error.AuthError,
     async = require('async');
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
     res.render('login', {
-        title: 'Express',
+        title: 'Login',
         user: req.user
     });
 });

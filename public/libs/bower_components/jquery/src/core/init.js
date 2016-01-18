@@ -1,9 +1,10 @@
 // Initialize a jQuery object
 define([
     "../core",
+    "../var/document",
     "./var/rsingleTag",
     "../traversing/findFilter"
-], function (jQuery, rsingleTag) {
+], function (jQuery, document, rsingleTag) {
 
 // A central reference to the root jQuery(document)
     var rootjQuery,
@@ -13,7 +14,7 @@ define([
     // Strict HTML recognition (#11290: must start with <)
         rquickExpr = /^(?:\s*(<[\w\W]+>)[^>]*|#([\w-]*))$/,
 
-        init = jQuery.fn.init = function (selector, context) {
+        init = jQuery.fn.init = function (selector, context, root) {
             var match, elem;
 
             // HANDLE: $(""), $(null), $(undefined), $(false)
@@ -21,9 +22,16 @@ define([
                 return this;
             }
 
+            // Method init() accepts an alternate rootjQuery
+            // so migrate can support jQuery.sub (gh-2101)
+            root = root || rootjQuery;
+
             // Handle HTML strings
             if (typeof selector === "string") {
-                if (selector[0] === "<" && selector[selector.length - 1] === ">" && selector.length >= 3) {
+                if (selector[0] === "<" &&
+                    selector[selector.length - 1] === ">" &&
+                    selector.length >= 3) {
+
                     // Assume that strings that start and end with <> are HTML and skip the regex check
                     match = [null, selector, null];
 
@@ -32,7 +40,7 @@ define([
                 }
 
                 // Match html or make sure no context is specified for #id
-                if (match && (match[1] || !context)) {
+                if (match && ( match[1] || !context )) {
 
                     // HANDLE: $(html) -> $(array)
                     if (match[1]) {
@@ -49,6 +57,7 @@ define([
                         // HANDLE: $(html, props)
                         if (rsingleTag.test(match[1]) && jQuery.isPlainObject(context)) {
                             for (match in context) {
+
                                 // Properties of context are called as methods if possible
                                 if (jQuery.isFunction(this[match])) {
                                     this[match](context[match]);
@@ -69,6 +78,7 @@ define([
                         // Support: Blackberry 4.6
                         // gEBID returns nodes no longer in the document (#6963)
                         if (elem && elem.parentNode) {
+
                             // Inject the element directly into the jQuery object
                             this.length = 1;
                             this[0] = elem;
@@ -81,7 +91,7 @@ define([
 
                     // HANDLE: $(expr, $(...))
                 } else if (!context || context.jquery) {
-                    return ( context || rootjQuery ).find(selector);
+                    return ( context || root ).find(selector);
 
                     // HANDLE: $(expr, context)
                     // (which is just equivalent to: $(context).find(expr)
@@ -98,8 +108,9 @@ define([
                 // HANDLE: $(function)
                 // Shortcut for document ready
             } else if (jQuery.isFunction(selector)) {
-                return typeof rootjQuery.ready !== "undefined" ?
-                    rootjQuery.ready(selector) :
+                return root.ready !== undefined ?
+                    root.ready(selector) :
+
                     // Execute immediately if ready is not present
                     selector(jQuery);
             }

@@ -1,8 +1,8 @@
 var async = require('async');
 var express = require('express'),
-    mongooose = require('./../common/mongoose'),
-    User = require('./../models/user').User,
-    HttpError = require('./../error').HttpError,
+    mongooose = require('common/mongoose'),
+    User = require('models/user').User,
+    HttpError = require('common/error').HttpError,
     ObjectID = require('mongodb').ObjectID;
 
 var router = express.Router();

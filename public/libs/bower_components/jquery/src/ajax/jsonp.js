@@ -24,7 +24,10 @@ define([
         var callbackName, overwritten, responseContainer,
             jsonProp = s.jsonp !== false && ( rjsonp.test(s.url) ?
                         "url" :
-                    typeof s.data === "string" && !( s.contentType || "" ).indexOf("application/x-www-form-urlencoded") && rjsonp.test(s.data) && "data"
+                    typeof s.data === "string" &&
+                    ( s.contentType || "" )
+                        .indexOf("application/x-www-form-urlencoded") === 0 &&
+                    rjsonp.test(s.data) && "data"
                 );
 
         // Handle iff the expected data type is "jsonp" or we have a parameter to set
@@ -50,7 +53,7 @@ define([
                 return responseContainer[0];
             };
 
-            // force json dataType
+            // Force json dataType
             s.dataTypes[0] = "json";
 
             // Install callback
@@ -61,15 +64,23 @@ define([
 
             // Clean-up function (fires after converters)
             jqXHR.always(function () {
-                // Restore preexisting value
-                window[callbackName] = overwritten;
+
+                // If previous value didn't exist - remove it
+                if (overwritten === undefined) {
+                    jQuery(window).removeProp(callbackName);
+
+                    // Otherwise restore preexisting value
+                } else {
+                    window[callbackName] = overwritten;
+                }
 
                 // Save back as free
                 if (s[callbackName]) {
-                    // make sure that re-using the options doesn't screw things around
+
+                    // Make sure that re-using the options doesn't screw things around
                     s.jsonpCallback = originalSettings.jsonpCallback;
 
-                    // save the callback name for future use
+                    // Save the callback name for future use
                     oldCallbacks.push(callbackName);
                 }
 

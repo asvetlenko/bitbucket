@@ -1,5 +1,6 @@
 define([
     "./var/arr",
+    "./var/document",
     "./var/slice",
     "./var/concat",
     "./var/push",
@@ -8,16 +9,14 @@ define([
     "./var/toString",
     "./var/hasOwn",
     "./var/support"
-], function (arr, slice, concat, push, indexOf, class2type, toString, hasOwn, support) {
+], function (arr, document, slice, concat, push, indexOf, class2type, toString, hasOwn, support) {
 
     var
-    // Use the correct document accordingly with window argument (sandbox)
-        document = window.document,
-
         version = "@VERSION",
 
     // Define a local copy of jQuery
         jQuery = function (selector, context) {
+
             // The jQuery object is actually just the init constructor 'enhanced'
             // Need init if jQuery is called (just allow error to be thrown if not included)
             return new jQuery.fn.init(selector, context);
@@ -37,6 +36,7 @@ define([
         };
 
     jQuery.fn = jQuery.prototype = {
+
         // The current version of jQuery being used
         jquery: version,
 
@@ -80,10 +80,8 @@ define([
         },
 
         // Execute a callback for every element in the matched set.
-        // (You can seed the arguments with an array of args, but this is
-        // only used internally.)
-        each: function (callback, args) {
-            return jQuery.each(this, callback, args);
+        each: function (callback) {
+            return jQuery.each(this, callback);
         },
 
         map: function (callback) {
@@ -111,7 +109,7 @@ define([
         },
 
         end: function () {
-            return this.prevObject || this.constructor(null);
+            return this.prevObject || this.constructor();
         },
 
         // For internal use only.
@@ -149,8 +147,10 @@ define([
         }
 
         for (; i < length; i++) {
+
             // Only deal with non-null/undefined values
-            if ((options = arguments[i]) != null) {
+            if (( options = arguments[i] ) != null) {
+
                 // Extend the base object
                 for (name in options) {
                     src = target[name];
@@ -162,7 +162,9 @@ define([
                     }
 
                     // Recurse if we're merging plain objects or arrays
-                    if (deep && copy && ( jQuery.isPlainObject(copy) || (copyIsArray = jQuery.isArray(copy)) )) {
+                    if (deep && copy && ( jQuery.isPlainObject(copy) ||
+                        ( copyIsArray = jQuery.isArray(copy) ) )) {
+
                         if (copyIsArray) {
                             copyIsArray = false;
                             clone = src && jQuery.isArray(src) ? src : [];
@@ -187,6 +189,7 @@ define([
     };
 
     jQuery.extend({
+
         // Unique for each copy of jQuery on the page
         expando: "jQuery" + ( version + Math.random() ).replace(/\D/g, ""),
 
@@ -211,14 +214,17 @@ define([
         },
 
         isNumeric: function (obj) {
+
             // parseFloat NaNs numeric-cast false positives (null|true|false|"")
             // ...but misinterprets leading-number strings, particularly hex literals ("0x...")
             // subtraction forces infinities to NaN
             // adding 1 corrects loss of precision from parseFloat (#15100)
-            return !jQuery.isArray(obj) && (obj - parseFloat(obj) + 1) >= 0;
+            var realStringObj = obj && obj.toString();
+            return !jQuery.isArray(obj) && ( realStringObj - parseFloat(realStringObj) + 1 ) >= 0;
         },
 
         isPlainObject: function (obj) {
+
             // Not plain objects:
             // - Any object or value whose internal [[Class]] property is not "[object Object]"
             // - DOM nodes
@@ -248,6 +254,7 @@ define([
             if (obj == null) {
                 return obj + "";
             }
+
             // Support: Android<4.0, iOS<6 (functionish RegExp)
             return typeof obj === "object" || typeof obj === "function" ?
             class2type[toString.call(obj)] || "object" :
@@ -262,6 +269,7 @@ define([
             code = jQuery.trim(code);
 
             if (code) {
+
                 // If the code includes a valid, prologue position
                 // strict mode pragma, execute code by injecting a
                 // script tag into the document.
@@ -270,8 +278,10 @@ define([
                     script.text = code;
                     document.head.appendChild(script).parentNode.removeChild(script);
                 } else {
+
                     // Otherwise, avoid the DOM node creation, insertion
                     // and removal by using an indirect global eval
+
                     indirect(code);
                 }
             }
@@ -288,49 +298,20 @@ define([
             return elem.nodeName && elem.nodeName.toLowerCase() === name.toLowerCase();
         },
 
-        // args is for internal usage only
-        each: function (obj, callback, args) {
-            var value,
-                i = 0,
-                length = obj.length,
-                isArray = isArraylike(obj);
+        each: function (obj, callback) {
+            var length, i = 0;
 
-            if (args) {
-                if (isArray) {
-                    for (; i < length; i++) {
-                        value = callback.apply(obj[i], args);
-
-                        if (value === false) {
-                            break;
-                        }
-                    }
-                } else {
-                    for (i in obj) {
-                        value = callback.apply(obj[i], args);
-
-                        if (value === false) {
-                            break;
-                        }
+            if (isArrayLike(obj)) {
+                length = obj.length;
+                for (; i < length; i++) {
+                    if (callback.call(obj[i], i, obj[i]) === false) {
+                        break;
                     }
                 }
-
-                // A special, fast, case for the most common use of each
             } else {
-                if (isArray) {
-                    for (; i < length; i++) {
-                        value = callback.call(obj[i], i, obj[i]);
-
-                        if (value === false) {
-                            break;
-                        }
-                    }
-                } else {
-                    for (i in obj) {
-                        value = callback.call(obj[i], i, obj[i]);
-
-                        if (value === false) {
-                            break;
-                        }
+                for (i in obj) {
+                    if (callback.call(obj[i], i, obj[i]) === false) {
+                        break;
                     }
                 }
             }
@@ -350,7 +331,7 @@ define([
             var ret = results || [];
 
             if (arr != null) {
-                if (isArraylike(Object(arr))) {
+                if (isArrayLike(Object(arr))) {
                     jQuery.merge(ret,
                         typeof arr === "string" ?
                             [arr] : arr
@@ -402,14 +383,13 @@ define([
 
         // arg is for internal usage only
         map: function (elems, callback, arg) {
-            var value,
+            var length, value,
                 i = 0,
-                length = elems.length,
-                isArray = isArraylike(elems),
                 ret = [];
 
             // Go through the array, translating each of the items to their new values
-            if (isArray) {
+            if (isArrayLike(elems)) {
+                length = elems.length;
                 for (; i < length; i++) {
                     value = callback(elems[i], i, arg);
 
@@ -472,26 +452,33 @@ define([
         support: support
     });
 
-// Populate the class2type map
-    jQuery.each("Boolean Number String Function Array Date RegExp Object Error".split(" "), function (i, name) {
-        class2type["[object " + name + "]"] = name.toLowerCase();
-    });
+// JSHint would error on this code due to the Symbol not being defined in ES5.
+// Defining this global in .jshintrc would create a danger of using the global
+// unguarded in another place, it seems safer to just disable JSHint for these
+// three lines.
+    /* jshint ignore: start */
+    if (typeof Symbol === "function") {
+        jQuery.fn[Symbol.iterator] = arr[Symbol.iterator];
+    }
+    /* jshint ignore: end */
 
-    function isArraylike(obj) {
+// Populate the class2type map
+    jQuery.each("Boolean Number String Function Array Date RegExp Object Error Symbol".split(" "),
+        function (i, name) {
+            class2type["[object " + name + "]"] = name.toLowerCase();
+        });
+
+    function isArrayLike(obj) {
 
         // Support: iOS 8.2 (not reproducible in simulator)
         // `in` check used to prevent JIT error (gh-2145)
         // hasOwn isn't used here due to false negatives
         // regarding Nodelist length in IE
-        var length = "length" in obj && obj.length,
+        var length = !!obj && "length" in obj && obj.length,
             type = jQuery.type(obj);
 
         if (type === "function" || jQuery.isWindow(obj)) {
             return false;
-        }
-
-        if (obj.nodeType === 1 && length) {
-            return true;
         }
 
         return type === "array" || length === 0 ||
